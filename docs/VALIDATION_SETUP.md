@@ -71,6 +71,14 @@ git push --no-verify
 
 ### What Gets Validated
 
+#### Common (All Repos)
+
+0. **Uncommitted Changes Check** 🆕
+   - Checks: `git status --porcelain`
+   - Ensures: All changes are committed before pushing
+   - **Blocks push if uncommitted changes exist**
+   - Rationale: Enforces clean commit history and intentional commits
+
 #### fit-api (Java/Spring Boot)
 
 1. **Code Format Check**
@@ -232,7 +240,14 @@ When a new developer joins:
    git clone <fit-common-repo>
    ```
 
-2. **Hooks are automatically active** (included in `.git/hooks/`)
+2. **Install pre-push hooks** 🆕
+   ```bash
+   cd fit-common
+   ./scripts/install-hooks.sh
+   ```
+
+   This installs the latest hooks in both fit-api and fit-mobile.
+   Hooks are stored in `.git/hooks/` (not tracked by git).
 
 3. **Verify hook setup**
    ```bash
@@ -274,6 +289,37 @@ When a new developer joins:
 ---
 
 ## Common Scenarios
+
+### Scenario 0: Uncommitted changes detected 🆕
+
+```bash
+✗ Uncommitted changes detected
+
+You have uncommitted changes. Please commit them before pushing:
+
+ M file1.java
+?? file2.java
+```
+
+**Solution:**
+```bash
+# Review your changes
+git status
+git diff
+
+# Stage and commit
+git add .
+git commit -m "your commit message"
+
+# Now push
+git push
+```
+
+**Why this check exists:**
+- Ensures all code is intentionally committed
+- Prevents accidental pushes of work-in-progress
+- Maintains clean git history
+- Forces you to write meaningful commit messages
 
 ### Scenario 1: Pre-push hook fails on tests
 

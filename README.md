@@ -61,10 +61,13 @@ Changes to `fit-common/docs/` are instantly visible in both apps.
 ### Code Quality & Validation
 
 **Pre-push hooks** automatically validate code before every push:
+- **Uncommitted changes check** - Blocks push if changes not committed
 - **fit-api**: Tests, build, format, SonarLint, API Registry sync
 - **fit-mobile**: Tests, lint, type check, build, guidelines
 
 **PR validation** runs on GitHub Actions for comprehensive CI/CD checks.
+
+**Install hooks:** `./scripts/install-hooks.sh` (run from fit-common)
 
 See [VALIDATION_SETUP.md](./docs/VALIDATION_SETUP.md) for complete guide.
 
