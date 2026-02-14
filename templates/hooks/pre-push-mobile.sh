@@ -159,7 +159,7 @@ if [ -n "$MODIFIED_API_FILES" ]; then
     echo "  Modified API-related files detected:"
     echo "$MODIFIED_API_FILES" | sed 's/^/    - /'
     echo ""
-    echo -e "${YELLOW}  ⚠ Reminder: Ensure all API calls match ../fit-common/docs/API_REGISTRY.md${NC}"
+    echo -e "${YELLOW}  ⚠ Reminder: Ensure all API calls match .claude/common/docs/API_REGISTRY.md${NC}"
     echo ""
     read -p "  Have you verified endpoints against API_REGISTRY.md? (y/n): " -n 1 -r
     echo ""

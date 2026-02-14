@@ -233,40 +233,79 @@ chmod +x .git/hooks/pre-push
 
 When a new developer joins:
 
-1. **Clone repositories**
+1. **Clone repository with submodules**
    ```bash
-   git clone <fit-api-repo>
-   git clone <fit-mobile-repo>
-   git clone <fit-common-repo>
-   ```
-
-2. **Install pre-push hooks** 🆕
-   ```bash
-   cd fit-common
-   ./scripts/install-hooks.sh
-   ```
-
-   This installs the latest hooks in both fit-api and fit-mobile.
-   Hooks are stored in `.git/hooks/` (not tracked by git).
-
-3. **Verify hook setup**
-   ```bash
-   # fit-api
+   # For backend development:
+   git clone --recurse-submodules https://github.com/DanilloMello/fit-api.git
    cd fit-api
-   ls -la .git/hooks/pre-push  # Should exist and be executable
 
-   # fit-mobile
+   # For mobile development:
+   git clone --recurse-submodules https://github.com/DanilloMello/fit-mobile.git
    cd fit-mobile
-   ls -la .git/hooks/pre-push  # Should exist and be executable
+
+   # If you forgot --recurse-submodules:
+   git submodule init
+   git submodule update
    ```
 
-4. **Test hooks**
+2. **Ensure fit-common is on latest version**
    ```bash
-   # Make a dummy commit and try to push
+   git submodule update --remote .claude/common
+   ```
+
+3. **Install git hooks** 🆕
+   ```bash
+   # From within fit-api or fit-mobile:
+   ./.claude/common/scripts/install-hooks.sh
+   ```
+
+   This installs:
+   - **pre-commit hook** - Warns if fit-common is outdated
+   - **post-merge hook** - Auto-updates fit-common after git pull
+   - **post-checkout hook** - Auto-updates fit-common when switching branches
+   - **pre-push hook** - Validates code quality before push
+   - **git config** - Sets `submodule.recurse = true`
+
+4. **Verify setup**
+   ```bash
+   # Check submodule status
+   git submodule status
+   # Should show: [commit-hash] .claude/common (heads/master)
+
+   # Check documentation is available
+   ls .claude/common/docs/
+   # Should show: API_REGISTRY.md, DOMAIN_SPEC.md, etc.
+
+   # Check git config
+   git config --get submodule.recurse
+   # Should output: true
+
+   # Check hooks are installed
+   ls -la .git/hooks/
+   # Should show: pre-commit, post-merge, post-checkout, pre-push (all executable)
+   ```
+
+5. **Test automated workflow**
+   ```bash
+   # Test post-merge hook
+   git pull origin master
+   # Should show: "📥 Updating fit-common documentation..."
+
+   # Test pre-commit hook (make fit-common outdated first)
+   cd .claude/common && git checkout HEAD~1 && cd ../..
+   git commit --allow-empty -m "test: verify pre-commit hook"
+   # Should show: "⚠️ WARNING: fit-common documentation is OUTDATED"
+
+   # Reset fit-common
+   cd .claude/common && git checkout master && cd ../..
+
+   # Test pre-push hook
    git commit --allow-empty -m "test: verify pre-push hook"
    git push origin HEAD
-   # Hook should run and validate
+   # Should run validation (tests, build, etc.)
    ```
+
+See [SUBMODULE_GUIDE.md](./SUBMODULE_GUIDE.md) for detailed submodule workflow.
 
 ### GitHub Actions Setup
 

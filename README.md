@@ -48,47 +48,99 @@ fit-docs/
 
 ### Syncing
 
-**Using symlinks** - docs are always up-to-date automatically!
+**Using Git Submodules** - docs are version-controlled and work cross-platform!
 
-```bash
-# One-time setup (already done)
-cd fit-api/.claude && ln -s ../../fit-common/docs docs
-cd fit-mobile/.claude && ln -s ../../fit-common/docs docs
-```
+fit-common is embedded as a git submodule in each application repository:
+- **fit-api**: `.claude/common/` → git submodule
+- **fit-mobile**: `.claude/common/` → git submodule
 
-Changes to `fit-common/docs/` are instantly visible in both apps.
+**Automated updates:**
+- `git pull` → post-merge hook auto-updates fit-common
+- `git checkout` → post-checkout hook auto-updates fit-common
+- `git commit` → pre-commit hook warns if fit-common outdated
+
+Changes to fit-common are synchronized via git version control.
 
 ### Code Quality & Validation
 
-**Pre-push hooks** automatically validate code before every push:
+**Automated git hooks** ensure code quality and fresh documentation:
+
+**Pre-commit hook:**
+- Warns if fit-common documentation is outdated
+- Gives option to cancel and update first
+
+**Post-merge hook:**
+- Auto-updates fit-common after `git pull`
+
+**Post-checkout hook:**
+- Auto-updates fit-common when switching branches
+
+**Pre-push hook:**
 - **Uncommitted changes check** - Blocks push if changes not committed
 - **fit-api**: Tests, build, format, SonarLint, API Registry sync
 - **fit-mobile**: Tests, lint, type check, build, guidelines
 
-**PR validation** runs on GitHub Actions for comprehensive CI/CD checks.
+**Git config:**
+- `submodule.recurse = true` - All git commands automatically update submodules
+- `submodule.update = merge` - Use merge strategy for updates
 
-**Install hooks:** `./scripts/install-hooks.sh` (run from fit-common)
+**Install hooks:** `./.claude/common/scripts/install-hooks.sh` (run from fit-api or fit-mobile)
+
+**PR validation** runs on GitHub Actions for comprehensive CI/CD checks.
 
 See [VALIDATION_SETUP.md](./docs/VALIDATION_SETUP.md) for complete guide.
 
 ## Quick Start
 
-```bash
-# Clone this repo as docs/
-git clone <this-repo> fit-common
+**Option 1: Clone app repository (fit-api or fit-mobile) - RECOMMENDED**
 
-# Setup MCP
-cd fit-docs/mcp
+```bash
+# Clone with submodules automatically
+git clone --recurse-submodules https://github.com/DanilloMello/fit-api.git
+cd fit-api
+
+# Ensure fit-common is on latest version
+git submodule update --remote .claude/common
+
+# Install hooks (includes git config)
+./.claude/common/scripts/install-hooks.sh
+
+# Docs are now available at .claude/common/docs/
+```
+
+**Option 2: Clone fit-common standalone (for documentation development)**
+
+```bash
+git clone https://github.com/DanilloMello/fit-common.git
+cd fit-common
+```
+
+**If you already cloned without submodules:**
+
+```bash
+cd fit-api  # or fit-mobile
+git submodule init
+git submodule update --remote .claude/common
+./.claude/common/scripts/install-hooks.sh
+```
+
+**Setup MCP Server (optional):**
+
+```bash
+# Build MCP server
+cd .claude/common/mcp
 npm install && npm run build
 
-# Configure Claude Code (.claude/mcp.json in each app repo)
+# Configure Claude Code (.claude/mcp.json)
 {
   "servers": {
     "connecthealth": {
       "command": "node",
-      "args": ["/path/to/fit-docs/mcp/dist/index.js"],
-      "env": { "DOCS_PATH": "/path/to/fit-common" }
+      "args": ["./.claude/common/mcp/dist/index.js"],
+      "env": { "DOCS_PATH": "./.claude/common" }
     }
   }
 }
 ```
+
+See [SUBMODULE_GUIDE.md](./docs/SUBMODULE_GUIDE.md) for detailed workflow.

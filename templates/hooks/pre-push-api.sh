@@ -112,7 +112,7 @@ if [ -n "$MODIFIED_CONTROLLERS" ]; then
         echo "$MODIFIED_CONTROLLERS" | sed 's/^/    - /'
         echo ""
         echo "  Please verify:"
-        echo "    1. If you added/changed endpoints, update .claude/docs/API_REGISTRY.md"
+        echo "    1. If you added/changed endpoints, update .claude/common/docs/API_REGISTRY.md"
         echo "    2. If no API changes, you can proceed"
         echo ""
         read -p "  Did you update API_REGISTRY.md or are there no API changes? (y/n): " -n 1 -r
