@@ -38,16 +38,10 @@ install_hooks() {
     cp "$TEMPLATES_DIR/post-checkout.sh" "$repo_path/.git/hooks/post-checkout"
     chmod +x "$repo_path/.git/hooks/post-checkout"
 
-    # Install pre-push hook (validation)
-    if [ "$repo_type" == "fit-api" ]; then
-        echo "  ✅ Installing pre-push hook (Java validation)..."
-        cp "$TEMPLATES_DIR/pre-push-api.sh" "$repo_path/.git/hooks/pre-push"
-        chmod +x "$repo_path/.git/hooks/pre-push"
-    elif [ "$repo_type" == "fit-mobile" ]; then
-        echo "  ✅ Installing pre-push hook (Node validation)..."
-        cp "$TEMPLATES_DIR/pre-push-mobile.sh" "$repo_path/.git/hooks/pre-push"
-        chmod +x "$repo_path/.git/hooks/pre-push"
-    fi
+    # Install pre-push hook (validation - unified auto-detecting hook)
+    echo "  ✅ Installing pre-push hook (auto-detecting validation)..."
+    cp "$TEMPLATES_DIR/pre-push.sh" "$repo_path/.git/hooks/pre-push"
+    chmod +x "$repo_path/.git/hooks/pre-push"
 
     echo "  ✓ Hooks installed for $repo_type"
 }
