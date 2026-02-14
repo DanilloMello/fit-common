@@ -1,6 +1,6 @@
 #!/bin/bash
-# install-hooks.sh - Install pre-push hooks for all repositories
-# This ensures all repos have the latest validation hooks
+# install-hooks.sh - Install git hooks and configure submodule behavior
+# Can be run from fit-common OR from app repos (via submodule)
 
 set -e
 
@@ -8,45 +8,97 @@ SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 BASE_DIR="$(dirname "$SCRIPT_DIR")"
 TEMPLATES_DIR="$BASE_DIR/templates/hooks"
 
-echo "📦 Installing pre-push hooks for ConnectHealth projects..."
+echo "📦 Installing git hooks and configuration for ConnectHealth..."
 echo ""
 
-# ============================================================
-# Install fit-api hook
-# ============================================================
-if [ -d "$BASE_DIR/../fit-api/.git" ]; then
-    echo "Installing fit-api pre-push hook..."
-    cp "$TEMPLATES_DIR/pre-push-api.sh" "$BASE_DIR/../fit-api/.git/hooks/pre-push"
-    chmod +x "$BASE_DIR/../fit-api/.git/hooks/pre-push"
-    echo "✓ fit-api hook installed"
-else
-    echo "⚠ fit-api repository not found at $BASE_DIR/../fit-api"
-fi
+# Function to install hooks for a repository
+install_hooks() {
+    local repo_path=$1
+    local repo_type=$2
 
-echo ""
+    echo "Installing hooks for $repo_type at $repo_path"
 
-# ============================================================
-# Install fit-mobile hook
-# ============================================================
-if [ -d "$BASE_DIR/../fit-mobile/.git" ]; then
-    echo "Installing fit-mobile pre-push hook..."
-    cp "$TEMPLATES_DIR/pre-push-mobile.sh" "$BASE_DIR/../fit-mobile/.git/hooks/pre-push"
-    chmod +x "$BASE_DIR/../fit-mobile/.git/hooks/pre-push"
-    echo "✓ fit-mobile hook installed"
+    # Configure git to always recurse submodules
+    echo "  ⚙️  Configuring git submodule auto-update..."
+    git -C "$repo_path" config submodule.recurse true
+    git -C "$repo_path" config submodule.update merge
+
+    # Install pre-commit hook (outdated warning)
+    echo "  📝 Installing pre-commit hook (outdated check)..."
+    cp "$TEMPLATES_DIR/pre-commit.sh" "$repo_path/.git/hooks/pre-commit"
+    chmod +x "$repo_path/.git/hooks/pre-commit"
+
+    # Install post-merge hook (auto-update after pull)
+    echo "  🔄 Installing post-merge hook (auto-update after pull)..."
+    cp "$TEMPLATES_DIR/post-merge.sh" "$repo_path/.git/hooks/post-merge"
+    chmod +x "$repo_path/.git/hooks/post-merge"
+
+    # Install post-checkout hook (update when switching branches)
+    echo "  🔀 Installing post-checkout hook (update on checkout)..."
+    cp "$TEMPLATES_DIR/post-checkout.sh" "$repo_path/.git/hooks/post-checkout"
+    chmod +x "$repo_path/.git/hooks/post-checkout"
+
+    # Install pre-push hook (validation)
+    if [ "$repo_type" == "fit-api" ]; then
+        echo "  ✅ Installing pre-push hook (Java validation)..."
+        cp "$TEMPLATES_DIR/pre-push-api.sh" "$repo_path/.git/hooks/pre-push"
+        chmod +x "$repo_path/.git/hooks/pre-push"
+    elif [ "$repo_type" == "fit-mobile" ]; then
+        echo "  ✅ Installing pre-push hook (Node validation)..."
+        cp "$TEMPLATES_DIR/pre-push-mobile.sh" "$repo_path/.git/hooks/pre-push"
+        chmod +x "$repo_path/.git/hooks/pre-push"
+    fi
+
+    echo "  ✓ Hooks installed for $repo_type"
+}
+
+# Detect if we're in a submodule or standalone fit-common
+if [ -f "$BASE_DIR/../../.git" ] || [ -d "$BASE_DIR/../../.git" ]; then
+    # We're in a submodule (.claude/common/)
+    REPO_ROOT="$(cd "$BASE_DIR/../.." && pwd)"
+    APP_NAME=$(basename "$REPO_ROOT")
+
+    echo "🔍 Detected submodule installation in $APP_NAME"
+    echo ""
+
+    if [[ "$APP_NAME" == "fit-api"* ]] || [ -f "$REPO_ROOT/gradlew" ]; then
+        install_hooks "$REPO_ROOT" "fit-api"
+    elif [[ "$APP_NAME" == "fit-mobile"* ]] || [ -f "$REPO_ROOT/package.json" ]; then
+        install_hooks "$REPO_ROOT" "fit-mobile"
+    else
+        echo "⚠ Could not detect repository type"
+        exit 1
+    fi
 else
-    echo "⚠ fit-mobile repository not found at $BASE_DIR/../fit-mobile"
+    # Standalone fit-common, try to find sibling repos
+    echo "🔍 Standalone fit-common installation"
+    echo ""
+
+    if [ -d "$BASE_DIR/../fit-api/.git" ]; then
+        install_hooks "$BASE_DIR/../fit-api" "fit-api"
+    else
+        echo "⚠ fit-api repository not found at $BASE_DIR/../fit-api"
+    fi
+
+    echo ""
+
+    if [ -d "$BASE_DIR/../fit-mobile/.git" ]; then
+        install_hooks "$BASE_DIR/../fit-mobile" "fit-mobile"
+    else
+        echo "⚠ fit-mobile repository not found at $BASE_DIR/../fit-mobile"
+    fi
 fi
 
 echo ""
 echo "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
-echo "✅ Pre-push hooks installed successfully!"
+echo "✅ Git hooks and configuration installed successfully!"
 echo "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
 echo ""
-echo "Hooks will now:"
-echo "  1. Block pushes if there are uncommitted changes"
-echo "  2. Run all validations (tests, build, lint, etc.)"
-echo "  3. Enforce coding guidelines"
-echo ""
-echo "To update hooks in the future, run this script again:"
-echo "  ./scripts/install-hooks.sh"
+echo "Automated workflow enabled:"
+echo "  ✓ git clone → always fetches latest fit-common"
+echo "  ✓ git pull → auto-updates fit-common (post-merge hook)"
+echo "  ✓ git checkout → updates fit-common when switching branches (post-checkout hook)"
+echo "  ✓ git commit → warns if fit-common outdated (pre-commit hook)"
+echo "  ✓ git push → validates code quality (pre-push hook)"
+echo "  ✓ submodule.recurse = true → all git commands update submodules"
 echo ""
