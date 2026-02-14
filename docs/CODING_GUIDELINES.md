@@ -132,17 +132,19 @@ libs/{module}/
 ## Cross-Project Rules
 
 ### API Contract Synchronization
-1. **fit-api** implements endpoint → updates `API_REGISTRY.md`
-2. **fit-mobile** reads `API_REGISTRY.md` → implements client
+1. **fit-api** implements endpoint → updates `API_REGISTRY.md` in fit-common repo
+2. **fit-mobile** reads `API_REGISTRY.md` via MCP → implements client
 3. **Never guess endpoints** - always check registry first
 4. **Types must match**: Backend DTOs ↔ Frontend types
 
 ### Documentation Updates
-When changing:
-- **Entities/Enums** → Update `DOMAIN_SPEC.md`
-- **API endpoints** → Update `API_REGISTRY.md`
-- **Requirements** → Update `PRD.md`
-- **Roadmap** → Update `SPRINT_PLAN.md`
+All shared docs live in the **fit-common** repo. Edit directly, commit, and push:
+- **Entities/Enums** → Update `docs/DOMAIN_SPEC.md`
+- **API endpoints** → Update `docs/API_REGISTRY.md`
+- **Requirements** → Update `docs/PRD.md`
+- **Roadmap** → Update `docs/SPRINT_PLAN.md`
+
+MCP servers in each app read directly from fit-common — no sync step needed.
 
 ### Commit Message Format
 ```

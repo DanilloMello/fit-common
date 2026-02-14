@@ -1,0 +1,20 @@
+{
+  "mcpServers": {
+    "fit-mobile-docs": {
+      "command": "npx",
+      "args": ["-y", "@modelcontextprotocol/server-filesystem", "../fit-common/docs"]
+    },
+    "fit-mobile-skills": {
+      "command": "npx",
+      "args": ["-y", "@modelcontextprotocol/server-filesystem", "./.claude/skills"]
+    },
+    "fit-mobile-scripts": {
+      "command": "npx",
+      "args": ["-y", "@modelcontextprotocol/server-filesystem", "../fit-common/scripts"]
+    },
+    "fit-mobile-hooks": {
+      "command": "npx",
+      "args": ["-y", "@modelcontextprotocol/server-filesystem", "../fit-common/templates/hooks"]
+    }
+  }
+}

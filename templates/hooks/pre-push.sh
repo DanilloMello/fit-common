@@ -118,7 +118,7 @@ if [ "$PROJECT_TYPE" == "api" ]; then
             echo "$MODIFIED_CONTROLLERS" | sed 's/^/    - /'
             echo ""
             echo "  Please verify:"
-            echo "    1. If you added/changed endpoints, update .claude/common/docs/API_REGISTRY.md"
+            echo "    1. If you added/changed endpoints, update API_REGISTRY.md in fit-common repo"
             echo "    2. If no API changes, you can proceed"
             echo ""
             read -p "  Did you update API_REGISTRY.md or are there no API changes? (y/n): " -n 1 -r
@@ -262,7 +262,7 @@ elif [ "$PROJECT_TYPE" == "mobile" ]; then
         echo "  Modified API-related files detected:"
         echo "$MODIFIED_API_FILES" | sed 's/^/    - /'
         echo ""
-        echo -e "${YELLOW}  ⚠ Reminder: Ensure all API calls match .claude/common/docs/API_REGISTRY.md${NC}"
+        echo -e "${YELLOW}  ⚠ Reminder: Ensure all API calls match API_REGISTRY.md in fit-common repo${NC}"
         echo ""
         read -p "  Have you verified endpoints against API_REGISTRY.md? (y/n): " -n 1 -r
         echo ""
